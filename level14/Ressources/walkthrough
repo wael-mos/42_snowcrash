@@ -1,0 +1,59 @@
+Here at the final level, there is no file nor anything that we could exploit on.
+
+Let's try to exploit the main command "getflag".
+It seems that getflag is an ELF 32-bit LSB executable as well, which means that ltrace and gdb could be use to analysis it.
+
+getflag is protected by ptrace. Let's find a way to bypass the ptrace. (https://stackoverflow.com/questions/33646927/bypassing-ptrace-in-gdb)
+
+level14@SnowCrash:~$ gdb -q getflag
+Reading symbols from /bin/getflag...(no debugging symbols found)...done.
+(gdb) run
+Starting program: /bin/getflag 
+You should not reverse this
+[Inferior 1 (process 18535) exited with code 01]
+(gdb) catch syscall ptrace
+Catchpoint 1 (syscall 'ptrace' [26])
+(gdb) commands 1
+Type commands for breakpoint(s) 1, one per line.
+End with a line saying just "end".
+>set ($eax) = 0
+>continue
+>end
+(gdb) run
+Starting program: /bin/getflag 
+
+Catchpoint 1 (call to syscall ptrace), 0xb7fdd428 in __kernel_vsyscall ()
+
+Catchpoint 1 (returned from syscall ptrace), 0xb7fdd428 in __kernel_vsyscall ()
+Check flag.Here is your token : 
+Nope there is no token here for you sorry. Try again :)
+[Inferior 1 (process 18544) exited normally]
+
+It works! Now let's try to dissamble the main function to analyze its assembly form. getflag is surprisingly long with 1400+ lines!
+
+Since we learned that we could do a set ($eax) and we know that $eax is where the function return value is saved.
+We can set a breakpoint at the next line right after the program calls getuid so we could replace the $eax value to anything we want to, base on the /env/passwd file, we can see that flag14 has and UID of 3014 so we should set that as the $eax value and let the program bring us to the token.
+
+(gdb) break *0x08048b02
+Breakpoint 2 at 0x8048b02
+(gdb) run
+Starting program: /bin/getflag 
+
+Catchpoint 1 (call to syscall ptrace), 0xb7fdd428 in __kernel_vsyscall ()
+
+Catchpoint 1 (returned from syscall ptrace), 0xb7fdd428 in __kernel_vsyscall ()
+
+Breakpoint 2, 0x08048b02 in main ()
+(gdb) print ($eax)
+$1 = 2014
+(gdb) set ($eax) = 3014
+(gdb) continue
+Continuing.
+Check flag.Here is your token : 7QiHafiNa3HVozsaXkawuYrTstxbpABHD8CPnHJ
+[Inferior 1 (process 18589) exited normally]
+
+level14@SnowCrash:~$ su flag14
+Password: 
+Congratulation. Type getflag to get the key and send it to me the owner of this livecd :)
+flag14@SnowCrash:~$ getflag
+Check flag.Here is your token : 7QiHafiNa3HVozsaXkawuYrTstxbpABHD8CPnHJ

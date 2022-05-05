@@ -1,0 +1,20 @@
+The project goal is to find the password of the command "su flag00".
+
+To do so, let's start to go to the root directory.
+
+"cd /"
+
+
+After having traveled multiple directory from the root directory "ls -la */*", I noticed that multiples files have as owner or group flagXX or levelXX instead of root. We can try to use the grep command help us filter the info.
+
+"ls -la */* | grep "flag00|level00""
+
+And there we found our first clue, a file named john with flag00 as owner and group.
+
+"cat /usr/sbin/john" result: "cdiiddwpgswtgt"
+
+The result is weird and doesnt match the password of "su flag00"
+
+To decipher this, I used the website "https://www.dcode.fr/caesar-cipher" which allow us to brute force it.
+
+There is many possible result, the one that is very readable is "nottoohardhere".

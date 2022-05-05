@@ -1,0 +1,19 @@
+For this level, we have a file in our directory: "level02.pcap"
+
+A .pcap is a Packet Capture API.
+
+Download the file :
+"scp -P 4242 level02@<snowcrash_ip>:/home/user/level02/level02.pcap ."
+
+The file have permissions issues and we cannot open it: 
+"chmod 777 level02.pcap"
+
+It seems that we could use a program called wireshark (https://www.wireshark.org/#download) to analyze this packet
+Let's create a OSX VM to download and use wireshark.
+
+Open level02.pcap with it and go to Analyze -> Follow -> TCP stream and choose UTF-8.
+
+The password contain the hex code 7f, its the control character which represent DEL and 0d, its just \r.
+So if we apply the DEL operation manually, we could trim the password and the final password will be
+
+"ft_waNDReL0L"

